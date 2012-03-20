@@ -1,0 +1,44 @@
+<!DOCTYPE HTML>
+<html lang="zh-TW">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script src="http://cdn.socket.io/stable/socket.io.js"></script>
+	<script>
+		$(function(){
+		function message(obj){
+        	$chat.append('<p>' + '<em>' + obj.id + '</em>'+' : <b>' + obj.message + '</b> ');
+      		}
+		var $chat = $('#chat');
+		var $text = $('#text');
+		$chat.append('welcom to talk ,please enter your name')
+        
+		var socket = new io.Socket(null, {port: 8080, rememberTransport: false});
+      	socket.connect();
+      	
+      	socket.on('message', function(obj){
+        if ('buffer' in obj){
+        	for (var i in obj.buffer) message(obj.buffer[i]);
+        }
+      	});
+      	
+      	
+      	$('#go').click(function(){
+      		$('body').append('clicked');
+			socket.send($text.attr("value"));
+			$text.attr("value","");
+		}
+		);
+      
+})
+	</script>
+</head>
+<body>
+	  <div id="chat"></div>
+	  <form id="form">
+      <input type="text" autocomplete="off" id="text"><input id='go' type="submit" value="send">
+      </form>
+	
+</body>
+</html>

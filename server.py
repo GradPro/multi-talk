@@ -1,17 +1,19 @@
 # -*- coding: UTF-8 -*-
-import traceback
-from gevent import monkey; monkey.patch_all()
-from socketio import SocketIOServer
 import sys
 import os.path as path
 
 sys.path.append(path.dirname(__file__) + '/.lib')
 
+import traceback
+from gevent import monkey; monkey.patch_all()
+from socketio import SocketIOServer
+
+
 class Application(object):
     def __init__(self):
         self.buffer = [{'id':'aaron','message':'i am aaron'},
                        {'id':'tei','message':'i am tei'}]
-        self.id = ''
+        self.member = {'55667':'aaron','55678':'tei'}
 
     def __call__(self, environ, start_response):
         path = environ['PATH_INFO'].strip('/')
@@ -43,13 +45,14 @@ class Application(object):
                 
                 if len(message) == 1:
                     message = message[0]
-                    if not self.id:
-                        self.id = message
-                        print 'id:'+self.id
+                    if not socketio.session.session_id in self.member :
+                        self.member[socketio.session.session_id] = message
+                        print 'id:'+self.member[socketio.session.session_id]
                     else:
-                        message = {'id': self.id, 'message': message}
+                        message = {'id': self.member[socketio.session.session_id], 'message': message}
                         self.buffer.append(message)
                         socketio.send({'buffer': [message]})
+                        socketio.broadcast({'buffer': [message]})
                         if len(self.buffer) > 15:
                             del self.buffer[0]
             return []
